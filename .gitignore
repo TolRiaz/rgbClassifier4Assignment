@@ -1,4 +1,5 @@
 MachineLearningCSV.zip
-output.jpg
+*.jpg
+*.csv
 
 venv/
