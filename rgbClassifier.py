@@ -84,36 +84,38 @@ height = int( columnLength / width ) + 1
 #print('len:', len(df.benign.columns)) 
 #print('w: %d, h: %d' % (width, height) )
 
-scale  = 400
+scale  = 1
 img = np.zeros( (height*scale, width*scale, 3), np.uint8 )
 
-thickness = 1
-columnFontScale = 1/2
-font = cv2.FONT_HERSHEY_SIMPLEX
+#thickness = 1
+#columnFontScale = 1/2
+#font = cv2.FONT_HERSHEY_SIMPLEX
 
-indexNum = 96
+#indexNum = 96
 
-for ci in range(columnLength):
-	rgb = df.benignRGB[indexNum][ci]	# [record index] [column index]
-	x, y = int(ci % width), int(ci / width)
+for indexNum in range(len(df.benignRGB)):
 
-#	print(x,y)
-#	print(int(rgb[0:2], 16), int(rgb[2:4], 16), int(rgb[4:6], 16))
-
-	# Draw rects
-	cv2.rectangle(	img,
-					(scale*x, scale*y),
-					(scale*(x+1), scale*(y+1)),
-					(int(rgb[0:2], 16), int(rgb[2:4], 16), int(rgb[4:6], 16)),
-					cv2.FILLED	)
-	# Get value text and textSize
-	text = str(df.benign.values[indexNum][ci])
-	textsize = cv2.getTextSize(text, font, 1, thickness)[0]
-
-	# Put info text
-	cv2.putText(img, text, ( int(x*scale + (scale - textsize[0])/2) , int(scale*(y+0.5)) ), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), thickness)
-	cv2.putText(img, df.benign.columns[ci], ( scale*x ,int(scale*(y+0.6)) ), font, columnFontScale, (255,255,255), thickness)
-
-#cv2.imshow('test', img)
-
-cv2.imwrite("output.jpg", img)
+	for ci in range(columnLength):
+		rgb = df.benignRGB[indexNum][ci]	# [record index] [column index]
+		x, y = int(ci % width), int(ci / width)
+	
+	#print(x,y)
+	#print(int(rgb[0:2], 16), int(rgb[2:4], 16), int(rgb[4:6], 16))
+	
+		# Draw rects
+		cv2.rectangle(	img,
+						(scale*x, scale*y),
+						(scale*(x+1), scale*(y+1)),
+						(int(rgb[0:2], 16), int(rgb[2:4], 16), int(rgb[4:6], 16)),
+						cv2.FILLED	)
+		# Get value text and textSize
+		#text = str(df.benign.values[indexNum][ci])
+		#textsize = cv2.getTextSize(text, font, 1, thickness)[0]
+	
+		# Put info text
+		#cv2.putText(img, text, ( int(x*scale + (scale - textsize[0])/2) , int(scale*(y+0.5)) ), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), thickness)
+		#cv2.putText(img, df.benign.columns[ci], ( scale*x ,int(scale*(y+0.6)) ), font, columnFontScale, (255,255,255), thickness)
+	
+	#cv2.imshow('test', img)
+	
+	cv2.imwrite("record%d.jpg" % indexNum, img)
