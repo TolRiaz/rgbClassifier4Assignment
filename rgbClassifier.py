@@ -84,7 +84,7 @@ height = int( columnLength / width ) + 1
 #print('len:', len(df.benign.columns)) 
 #print('w: %d, h: %d' % (width, height) )
 
-scale  = 1
+scale  = 10
 img = np.zeros( (height*scale, width*scale, 3), np.uint8 )
 
 #thickness = 1
@@ -108,14 +108,23 @@ for indexNum in range(len(df.benignRGB)):
 						(scale*(x+1), scale*(y+1)),
 						(int(rgb[0:2], 16), int(rgb[2:4], 16), int(rgb[4:6], 16)),
 						cv2.FILLED	)
-		# Get value text and textSize
-		#text = str(df.benign.values[indexNum][ci])
-		#textsize = cv2.getTextSize(text, font, 1, thickness)[0]
+
+	cv2.imwrite("benign%d.jpg" % indexNum, img)
+
+for indexNum in range(len(df.ddosRGB)):
+
+	for ci in range(columnLength):
+		rgb = df.ddosRGB[indexNum][ci]	# [record index] [column index]
+		x, y = int(ci % width), int(ci / width)
 	
-		# Put info text
-		#cv2.putText(img, text, ( int(x*scale + (scale - textsize[0])/2) , int(scale*(y+0.5)) ), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), thickness)
-		#cv2.putText(img, df.benign.columns[ci], ( scale*x ,int(scale*(y+0.6)) ), font, columnFontScale, (255,255,255), thickness)
+	#print(x,y)
+	#print(int(rgb[0:2], 16), int(rgb[2:4], 16), int(rgb[4:6], 16))
 	
-	#cv2.imshow('test', img)
-	
-	cv2.imwrite("record%d.jpg" % indexNum, img)
+		# Draw rects
+		cv2.rectangle(	img,
+						(scale*x, scale*y),
+						(scale*(x+1), scale*(y+1)),
+						(int(rgb[0:2], 16), int(rgb[2:4], 16), int(rgb[4:6], 16)),
+						cv2.FILLED	)
+
+	cv2.imwrite("ddos%d.jpg" % indexNum, img)
