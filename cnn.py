@@ -8,19 +8,19 @@ import numpy as np
 import os
 import pathlib
 
-img_dir  = './result/Friday-WorkingHours-Afternoon-DDos'
+img_dir  = './result'
 img_path = pathlib.Path(img_dir)
 print("img_path =============>", img_path)
 
-batch_size = 128
-img_width = 80
-img_height = 100
+batch_size = 16
+img_width = 8
+img_height = 10
 
 train_ds = tf.keras.utils.image_dataset_from_directory(
 	img_path,
 	validation_split=0.2,
 	subset="training",
-	seed=123,
+	seed=777,
 	image_size=(img_height, img_width),
 	batch_size=batch_size)
 
@@ -28,7 +28,7 @@ val_ds = tf.keras.utils.image_dataset_from_directory(
 	img_path,
 	validation_split=0.2,
 	subset="validation",
-	seed=123,
+	seed=333,
 	image_size=(img_height, img_width),
 	batch_size=batch_size)
 
@@ -51,55 +51,58 @@ print(np.min(first_image), np.max(first_image))
 # keras 모델 만들기
 num_classes = len(class_names)
 
-model = Sequential([
-  layers.Rescaling(1./255, input_shape=(img_height, img_width, 3)),
-  layers.Conv2D(16, 3, padding='same', activation='relu'),
-  layers.MaxPooling2D(),
-  layers.Conv2D(32, 3, padding='same', activation='relu'),
-  layers.MaxPooling2D(),
-  layers.Conv2D(64, 3, padding='same', activation='relu'),
-  layers.MaxPooling2D(),
-  layers.Flatten(),
-  layers.Dense(128, activation='relu'),
-  layers.Dense(num_classes)
-])
+offset = 9
 
-# 모델 컴파일
-model.compile(	optimizer='adam',
-              	loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
-              	metrics=['accuracy']	)
+with tf.device('/gpu:0'):
+	model = Sequential([
+	  layers.Rescaling(1./255, input_shape=(img_height, img_width, 3)),
+	  layers.Conv2D(16, offset, padding='same', activation='relu'),
+	  layers.MaxPooling2D(),
+	  layers.Conv2D(32, offset, padding='same', activation='relu'),
+	  layers.MaxPooling2D(),
+	  layers.Conv2D(64, offset, padding='same', activation='relu'),
+	  layers.MaxPooling2D(),
+	  layers.Flatten(),
+	  layers.Dense(128, activation='relu'),
+	  layers.Dense(num_classes)
+	])
 
-# 모델 요약
-model.summary()
+	# 모델 컴파일
+	model.compile(	optimizer='adam',
+					loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+					metrics=['accuracy']	)
 
-# 모델 훈련
-epochs = 3
-history = model.fit(
-  train_ds,
-  validation_data=val_ds,
-  epochs=epochs
-)
+	# 모델 요약
+	model.summary()
 
-# 훈련 결과 시각화
-acc = history.history['accuracy']
-val_acc = history.history['val_accuracy']
+	# 모델 훈련
+	epochs = 11
+	history = model.fit(
+	  train_ds,
+	  validation_data=val_ds,
+	  epochs=epochs
+	)
 
-loss = history.history['loss']
-val_loss = history.history['val_loss']
+	# 훈련 결과 시각화
+	acc = history.history['accuracy']
+	val_acc = history.history['val_accuracy']
 
-epochs_range = range(epochs)
+	loss = history.history['loss']
+	val_loss = history.history['val_loss']
 
-plt.figure(figsize=(8, 8))
-plt.subplot(1, 2, 1)
-plt.plot(epochs_range, acc, label='Training Accuracy')
-plt.plot(epochs_range, val_acc, label='Validation Accuracy')
-plt.legend(loc='lower right')
-plt.title('Training and Validation Accuracy')
+	epochs_range = range(epochs)
 
-plt.subplot(1, 2, 2)
-plt.plot(epochs_range, loss, label='Training Loss')
-plt.plot(epochs_range, val_loss, label='Validation Loss')
-plt.legend(loc='upper right')
-plt.title('Training and Validation Loss')
-#plt.show()
-plt.savefig(img_dir + '/accuracy.png')
+	plt.figure(figsize=(8, 8))
+	plt.subplot(1, 2, 1)
+	plt.plot(epochs_range, acc, label='Training Accuracy')
+	plt.plot(epochs_range, val_acc, label='Validation Accuracy')
+	plt.legend(loc='lower right')
+	plt.title('Training and Validation Accuracy')
+
+	plt.subplot(1, 2, 2)
+	plt.plot(epochs_range, loss, label='Training Loss')
+	plt.plot(epochs_range, val_loss, label='Validation Loss')
+	plt.legend(loc='upper right')
+	plt.title('Training and Validation Loss')
+	#plt.show()
+	plt.savefig( img_dir + '/accuracy_batch%s_offset%s.png' % (batch_size, offset) )

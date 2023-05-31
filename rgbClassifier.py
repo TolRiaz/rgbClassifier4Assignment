@@ -16,11 +16,19 @@ filepath = open("./datasets/Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv")
 
 # The last column name
 #print(df.columns[78])
-def dataframeFloat2RGBHex(dataframe):
+
+def dataframeFloat2RGB(dataframe):
 	newDataframe = []
 
 	for df in dataframe:
-		newDf = [ hex(struct.unpack('<I', struct.pack('<f', value))[0])[2:].zfill(8) for value in df ]
+		newDf = []
+		for value in df:
+			r = int( value / (256*256) )
+			g = int( (value / 256) - r*256)
+			b = int( value % 256 )
+
+			newDf.append([r,g,b])
+
 		newDataframe.append(newDf)
 
 	return newDataframe
@@ -66,10 +74,10 @@ class Dataframe2RGB:
 		s = MinMaxScaler(feature_range=(0, rgbRange))
 
 		s.fit(self.benign)
-		self.benignRGB = dataframeFloat2RGBHex(s.transform(self.benign))
+		self.benignRGB = dataframeFloat2RGB(s.transform(self.benign))
 
 		s.fit(self.ddos)
-		self.ddosRGB = dataframeFloat2RGBHex(s.transform(self.ddos))
+		self.ddosRGB = dataframeFloat2RGB(s.transform(self.ddos))
 
 # Generate Dataframe2RGB
 df = Dataframe2RGB(filepath)
@@ -84,7 +92,7 @@ height = int( columnLength / width ) + 1
 #print('len:', len(df.benign.columns)) 
 #print('w: %d, h: %d' % (width, height) )
 
-scale  = 10
+scale  = 1
 img = np.zeros( (height*scale, width*scale, 3), np.uint8 )
 
 #thickness = 1
@@ -97,6 +105,7 @@ for indexNum in range(len(df.benignRGB)):
 
 	for ci in range(columnLength):
 		rgb = df.benignRGB[indexNum][ci]	# [record index] [column index]
+		#print(rgb)
 		x, y = int(ci % width), int(ci / width)
 	
 	#print(x,y)
@@ -106,10 +115,10 @@ for indexNum in range(len(df.benignRGB)):
 		cv2.rectangle(	img,
 						(scale*x, scale*y),
 						(scale*(x+1), scale*(y+1)),
-						(int(rgb[0:2], 16), int(rgb[2:4], 16), int(rgb[4:6], 16)),
+						(rgb[0], rgb[1], rgb[2]),
 						cv2.FILLED	)
 
-	cv2.imwrite("benign%d.jpg" % indexNum, img)
+	cv2.imwrite("result/benign/benign%d.jpg" % indexNum, img)
 
 for indexNum in range(len(df.ddosRGB)):
 
@@ -124,7 +133,7 @@ for indexNum in range(len(df.ddosRGB)):
 		cv2.rectangle(	img,
 						(scale*x, scale*y),
 						(scale*(x+1), scale*(y+1)),
-						(int(rgb[0:2], 16), int(rgb[2:4], 16), int(rgb[4:6], 16)),
+						(rgb[0], rgb[1], rgb[2]),
 						cv2.FILLED	)
 
-	cv2.imwrite("ddos%d.jpg" % indexNum, img)
+	cv2.imwrite("result/ddos/ddos%d.jpg" % indexNum, img)
