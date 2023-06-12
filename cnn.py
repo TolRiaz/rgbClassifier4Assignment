@@ -51,58 +51,67 @@ print(np.min(first_image), np.max(first_image))
 # keras 모델 만들기
 num_classes = len(class_names)
 
-offset = 9
+def cnn(filter_size):
+	global img_height, img_width, num_classes
 
-with tf.device('/gpu:0'):
-	model = Sequential([
-	  layers.Rescaling(1./255, input_shape=(img_height, img_width, 3)),
-	  layers.Conv2D(16, offset, padding='same', activation='relu'),
-	  layers.MaxPooling2D(),
-	  layers.Conv2D(32, offset, padding='same', activation='relu'),
-	  layers.MaxPooling2D(),
-	  layers.Conv2D(64, offset, padding='same', activation='relu'),
-	  layers.MaxPooling2D(),
-	  layers.Flatten(),
-	  layers.Dense(128, activation='relu'),
-	  layers.Dense(num_classes)
-	])
+	with tf.device('/gpu:0'):
+		model = Sequential([
+		  layers.Rescaling(1./255, input_shape=(img_height, img_width, 3)),
+		  layers.Conv2D(16, filter_size, padding='same', activation='relu'),
+		  layers.MaxPooling2D(),
+		  layers.Conv2D(32, filter_size, padding='same', activation='relu'),
+		  layers.MaxPooling2D(),
+		  layers.Conv2D(64, filter_size, padding='same', activation='relu'),
+		  layers.MaxPooling2D(),
+		  layers.Flatten(),
+		  layers.Dense(128, activation='relu'),
+		  layers.Dense(num_classes)
+		])
 
-	# 모델 컴파일
-	model.compile(	optimizer='adam',
-					loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
-					metrics=['accuracy']	)
+		# 모델 컴파일
+		model.compile(	optimizer='adam',
+						loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+						metrics=['accuracy']	)
 
-	# 모델 요약
-	model.summary()
+		# 모델 요약
+		model.summary()
 
-	# 모델 훈련
-	epochs = 11
-	history = model.fit(
-	  train_ds,
-	  validation_data=val_ds,
-	  epochs=epochs
-	)
+		# 모델 훈련
+		epochs = 11
+		history = model.fit(
+		  train_ds,
+		  validation_data=val_ds,
+		  epochs=epochs
+		)
 
-	# 훈련 결과 시각화
-	acc = history.history['accuracy']
-	val_acc = history.history['val_accuracy']
+		# 훈련 결과 시각화
+		acc = history.history['accuracy']
+		val_acc = history.history['val_accuracy']
 
-	loss = history.history['loss']
-	val_loss = history.history['val_loss']
+		loss = history.history['loss']
+		val_loss = history.history['val_loss']
 
-	epochs_range = range(epochs)
+		epochs_range = range(epochs)
 
-	plt.figure(figsize=(8, 8))
-	plt.subplot(1, 2, 1)
-	plt.plot(epochs_range, acc, label='Training Accuracy')
-	plt.plot(epochs_range, val_acc, label='Validation Accuracy')
-	plt.legend(loc='lower right')
-	plt.title('Training and Validation Accuracy')
+		plt.figure(figsize=(8, 8))
+		plt.subplot(1, 2, 1)
+		plt.plot(epochs_range, acc, label='Training Accuracy')
+		plt.plot(epochs_range, val_acc, label='Validation Accuracy')
+		plt.legend(loc='lower right')
+		plt.title('Training and Validation Accuracy')
 
-	plt.subplot(1, 2, 2)
-	plt.plot(epochs_range, loss, label='Training Loss')
-	plt.plot(epochs_range, val_loss, label='Validation Loss')
-	plt.legend(loc='upper right')
-	plt.title('Training and Validation Loss')
-	#plt.show()
-	plt.savefig( img_dir + '/accuracy_batch%s_offset%s.png' % (batch_size, offset) )
+		plt.subplot(1, 2, 2)
+		plt.plot(epochs_range, loss, label='Training Loss')
+		plt.plot(epochs_range, val_loss, label='Validation Loss')
+		plt.legend(loc='upper right')
+		plt.title('Training and Validation Loss')
+		#plt.show()
+		plt.savefig( img_dir + '/accuracy_batch%s_filterSize%s.png' % (batch_size, filter_size) )
+
+
+
+# start cnn
+#filter_size = 1
+
+for filter_size in range(1, 10):
+	cnn(filter_size)
